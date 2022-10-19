@@ -41,7 +41,7 @@ pipeline:
                 cluster: europe-west1-b/cluster-1
                 namespace: nginx-helm
                 releaseName: release-<+INFRA_KEY>
-            allowSimultaneousDeployments: true
+            allowSimultaneousDeployments: false
           execution:
             steps:
               - step:
