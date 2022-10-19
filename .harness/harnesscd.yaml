@@ -1,0 +1,36 @@
+pipeline:
+  name: harness-cd
+  identifier: harnesscd
+  projectIdentifier: pecdharness
+  orgIdentifier: default
+  tags: {}
+  stages:
+    - stage:
+        name: Authenticate with GCP
+        identifier: Authenticate_with_GCP
+        description: ""
+        type: Custom
+        spec:
+          execution:
+            steps:
+              - step:
+                  type: ShellScript
+                  name: print access token
+                  identifier: print_access_token
+                  spec:
+                    shell: Bash
+                    onDelegate: true
+                    source:
+                      type: Inline
+                      spec:
+                        script: gcloud auth print-access-token
+                    environmentVariables:
+                      - name: service_account
+                        type: String
+                        value: playpen-yggfkz-sa@playpen-yggfkz.iam.gserviceaccount.com
+                    outputVariables:
+                      - name: Response
+                        type: String
+                        value: ok
+                  timeout: 10m
+        tags: {}
