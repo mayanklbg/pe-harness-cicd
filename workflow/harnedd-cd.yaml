@@ -95,3 +95,7 @@ pipeline:
               action:
                 type: StageRollback
         variables: []
+        delegateSelectors:
+          - sample-6f1b89a0-fcfc-4d6f-87c4-d640c9ba919d-delegate
+        when:
+          pipelineStatus: Success
