@@ -6,33 +6,29 @@ pipeline:
   tags: {}
   stages:
     - stage:
-        name: deploy using helm
-        identifier: deploy_using_helm
+        name: helm deploy
+        identifier: helm_deploy
         description: ""
         type: Deployment
         spec:
           serviceConfig:
-            serviceRef: Deploy_Service
+            serviceRef: Deploy_helm
             serviceDefinition:
               spec:
                 variables: []
                 manifests:
                   - manifest:
-                      identifier: helm-deployment
+                      identifier: nginx
                       type: HelmChart
                       spec:
                         store:
-                          type: Github
+                          type: Http
                           spec:
-                            connectorRef: account.Github
-                            gitFetchType: Branch
-                            folderPath: helm
-                            repoName: https://github.com/mayanklbg/pe-harness-cicd
-                            branch: dev-harness-helm
-                        valuesPaths:
-                          - helm/values.yaml
-                        skipResourceVersioning: false
+                            connectorRef: helm_connector
+                        chartName: nginx
+                        chartVersion: ""
                         helmVersion: V3
+                        skipResourceVersioning: false
               type: NativeHelm
           infrastructure:
             environmentRef: dev
@@ -53,10 +49,6 @@ pipeline:
                   timeout: 10m
                   spec:
                     skipDryRun: false
-                    ignoreReleaseHistFailStatus: true
-                    delegateSelectors:
-                      - sample-6f1b89a0-fcfc-4d6f-87c4-d640c9ba919d-delegate
-                  failureStrategies: []
             rollbackSteps:
               - step:
                   name: Helm Rollback
@@ -71,11 +63,6 @@ pipeline:
                 - AllErrors
               action:
                 type: StageRollback
-        delegateSelectors:
-          - sample-6f1b89a0-fcfc-4d6f-87c4-d640c9ba919d-delegate
-        variables: []
-        when:
-          pipelineStatus: Success
   notificationRules:
     - name: all events
       identifier: all_events
