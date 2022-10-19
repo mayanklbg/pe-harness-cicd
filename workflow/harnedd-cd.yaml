@@ -1,0 +1,97 @@
+pipeline:
+  name: pe-cd-pipeline
+  identifier: pecdpipeline
+  projectIdentifier: pecd
+  orgIdentifier: default
+  tags: {}
+  stages:
+    - stage:
+        name: Deploy Service
+        identifier: Deploy_Service
+        description: ""
+        type: Deployment
+        spec:
+          serviceConfig:
+            serviceRef: Deploy_Service
+            serviceDefinition:
+              spec:
+                variables: []
+                manifests:
+                  - manifest:
+                      identifier: nginx
+                      type: K8sManifest
+                      spec:
+                        store:
+                          type: Github
+                          spec:
+                            connectorRef: k8sopen
+                            gitFetchType: Branch
+                            paths:
+                              - content/en/examples/application/nginx-app.yaml
+                            branch: main
+                        skipResourceVersioning: false
+              type: Kubernetes
+          execution:
+            steps:
+              - stepGroup:
+                  name: Canary Deployment
+                  identifier: canaryDepoyment
+                  steps:
+                    - step:
+                        name: Canary Deployment
+                        identifier: canaryDeployment
+                        type: K8sCanaryDeploy
+                        timeout: 10m
+                        spec:
+                          instanceSelection:
+                            type: Count
+                            spec:
+                              count: 1
+                          skipDryRun: false
+                    - step:
+                        name: Canary Delete
+                        identifier: canaryDelete
+                        type: K8sCanaryDelete
+                        timeout: 10m
+                        spec: {}
+              - stepGroup:
+                  name: Primary Deployment
+                  identifier: primaryDepoyment
+                  steps:
+                    - step:
+                        name: Rolling Deployment
+                        identifier: rollingDeployment
+                        type: K8sRollingDeploy
+                        timeout: 10m
+                        spec:
+                          skipDryRun: false
+            rollbackSteps:
+              - step:
+                  name: Canary Delete
+                  identifier: rollbackCanaryDelete
+                  type: K8sCanaryDelete
+                  timeout: 10m
+                  spec: {}
+              - step:
+                  name: Rolling Rollback
+                  identifier: rollingRollback
+                  type: K8sRollingRollback
+                  timeout: 10m
+                  spec: {}
+          infrastructure:
+            environmentRef: dev
+            infrastructureDefinition:
+              type: KubernetesDirect
+              spec:
+                connectorRef: sample6f1b89a0fcfc4d6f87c4d640c9ba919ddelegate
+                namespace: hello-world
+                releaseName: release-<+INFRA_KEY>
+            allowSimultaneousDeployments: false
+        tags: {}
+        failureStrategies:
+          - onFailure:
+              errors:
+                - AllErrors
+              action:
+                type: StageRollback
+        variables: []
