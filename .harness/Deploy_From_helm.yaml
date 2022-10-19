@@ -37,7 +37,7 @@ pipeline:
               spec:
                 connectorRef: peplaypen
                 cluster: europe-west1-b/cluster-1
-                namespace: nginx-helm
+                namespace: nginx-1
                 releaseName: release-<+INFRA_KEY>
             allowSimultaneousDeployments: false
           execution:
