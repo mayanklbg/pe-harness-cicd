@@ -72,3 +72,17 @@ pipeline:
         delegateSelectors:
           - sample-6f1b89a0-fcfc-4d6f-87c4-d640c9ba919d-delegate
         variables: []
+  notificationRules:
+    - name: all events
+      identifier: all_events
+      pipelineEvents:
+        - type: StageFailed
+          forStages:
+            - deploy_using_helm
+      notificationMethod:
+        type: Email
+        spec:
+          userGroups: []
+          recipients:
+            - mayank.agarwal19911@gmail.com
+      enabled: true
