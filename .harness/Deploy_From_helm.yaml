@@ -30,7 +30,7 @@ pipeline:
                             repoName: https://github.com/mayanklbg/pe-harness-cicd.git
                             branch: dev-harness-helm
                         valuesPaths:
-                          - values.yaml
+                          - /helm/values.yaml
                         skipResourceVersioning: false
                         helmVersion: V2
               type: NativeHelm
@@ -43,16 +43,27 @@ pipeline:
                 cluster: europe-west1-b/cluster-1
                 namespace: nginx-1
                 releaseName: release-<+INFRA_KEY>
-            allowSimultaneousDeployments: false
+            allowSimultaneousDeployments: true
           execution:
             steps:
               - step:
                   name: Helm Deployment
                   identifier: helmDeployment
                   type: HelmDeploy
-                  timeout: 10m
+                  timeout: 2m
                   spec:
                     skipDryRun: false
+                    ignoreReleaseHistFailStatus: false
+                    delegateSelectors:
+                      - sample-6f1b89a0-fcfc-4d6f-87c4-d640c9ba919d-delegate
+                  failureStrategies:
+                    - onFailure:
+                        errors:
+                          - AllErrors
+                        action:
+                          type: StageRollback
+                  strategy:
+                    parallelism: 1
             rollbackSteps:
               - step:
                   name: Helm Rollback
