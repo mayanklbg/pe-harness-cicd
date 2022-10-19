@@ -72,6 +72,8 @@ pipeline:
         delegateSelectors:
           - sample-6f1b89a0-fcfc-4d6f-87c4-d640c9ba919d-delegate
         variables: []
+        when:
+          pipelineStatus: Success
   notificationRules:
     - name: all events
       identifier: all_events
@@ -86,3 +88,7 @@ pipeline:
           recipients:
             - mayank.agarwal19911@gmail.com
       enabled: true
+  timeout: 2m
+  allowStageExecutions: false
+  delegateSelectors:
+    - sample-6f1b89a0-fcfc-4d6f-87c4-d640c9ba919d-delegate
