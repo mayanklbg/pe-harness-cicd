@@ -63,7 +63,12 @@ pipeline:
                   timeout: 10m
                   spec: {}
         tags: {}
-        failureStrategies: []
+        failureStrategies:
+          - onFailure:
+              errors:
+                - AllErrors
+              action:
+                type: StageRollback
         delegateSelectors:
           - sample-6f1b89a0-fcfc-4d6f-87c4-d640c9ba919d-delegate
         variables: []
