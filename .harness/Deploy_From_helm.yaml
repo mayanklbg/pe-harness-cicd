@@ -27,8 +27,10 @@ pipeline:
                             connectorRef: account.Github
                             gitFetchType: Branch
                             folderPath: helm
-                            repoName: https://github.com/mayanklbg/pe-harness-cicd.git
+                            repoName: https://github.com/mayanklbg/pe-harness-cicd
                             branch: dev-harness-helm
+                        valuesPaths:
+                          - helm/values.yaml
                         skipResourceVersioning: false
                         helmVersion: V3
               type: NativeHelm
