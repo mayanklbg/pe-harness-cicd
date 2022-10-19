@@ -1,0 +1,69 @@
+pipeline:
+  name: Deploy From helm
+  identifier: Deploy_From_helm
+  projectIdentifier: pecd
+  orgIdentifier: default
+  tags: {}
+  stages:
+    - stage:
+        name: deploy using helm
+        identifier: deploy_using_helm
+        description: ""
+        type: Deployment
+        spec:
+          serviceConfig:
+            serviceRef: Deploy_helm
+            serviceDefinition:
+              spec:
+                variables: []
+                manifests:
+                  - manifest:
+                      identifier: helm-deployment
+                      type: HelmChart
+                      spec:
+                        store:
+                          type: Github
+                          spec:
+                            connectorRef: account.Github
+                            gitFetchType: Branch
+                            folderPath: /helm
+                            repoName: https://github.com/mayanklbg/pe-harness-cicd.git
+                            branch: dev
+                        skipResourceVersioning: false
+                        helmVersion: V3
+              type: NativeHelm
+          infrastructure:
+            environmentRef: dev
+            infrastructureDefinition:
+              type: KubernetesGcp
+              spec:
+                connectorRef: peplaypen
+                cluster: europe-west1-b/cluster-1
+                namespace: nginx-helm
+                releaseName: release-<+INFRA_KEY>
+            allowSimultaneousDeployments: true
+          execution:
+            steps:
+              - step:
+                  name: Helm Deployment
+                  identifier: helmDeployment
+                  type: HelmDeploy
+                  timeout: 10m
+                  spec:
+                    skipDryRun: false
+                    ignoreReleaseHistFailStatus: false
+                    delegateSelectors:
+                      - sample-6f1b89a0-fcfc-4d6f-87c4-d640c9ba919d-delegate
+                  failureStrategies: []
+            rollbackSteps:
+              - step:
+                  name: Helm Rollback
+                  identifier: helmRollback
+                  type: HelmRollback
+                  timeout: 10m
+                  spec: {}
+        tags: {}
+        failureStrategies: []
+        delegateSelectors:
+          - sample-6f1b89a0-fcfc-4d6f-87c4-d640c9ba919d-delegate
+        variables: []
