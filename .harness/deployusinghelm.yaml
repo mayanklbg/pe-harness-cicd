@@ -37,7 +37,7 @@ pipeline:
               type: KubernetesGcp
               spec:
                 connectorRef: gcpconnector
-                cluster: europe-west1-b/cluster-1
+                cluster: europe-west1-b/harness-delegate
                 namespace: nginx-helm
                 releaseName: release-<+INFRA_KEY>
             allowSimultaneousDeployments: false
