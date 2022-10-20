@@ -1,0 +1,94 @@
+pipeline:
+  name: Deploy From helm
+  identifier: Deploy_From_helm
+  projectIdentifier: pecd
+  orgIdentifier: default
+  tags: {}
+  stages:
+    - stage:
+        name: helm deploy
+        identifier: helm_deploy
+        description: ""
+        type: Deployment
+        spec:
+          serviceConfig:
+            serviceRef: Deploy_helm
+            serviceDefinition:
+              spec:
+                variables: []
+                manifests:
+                  - manifest:
+                      identifier: nginx
+                      type: HelmChart
+                      spec:
+                        store:
+                          type: Http
+                          spec:
+                            connectorRef: helm_connector
+                        chartName: nginx
+                        chartVersion: 8.8.1
+                        helmVersion: V3
+                        skipResourceVersioning: false
+              type: NativeHelm
+          infrastructure:
+            environmentRef: dev
+            infrastructureDefinition:
+              type: KubernetesGcp
+              spec:
+                connectorRef: peplaypen
+                cluster: europe-west1-b/cluster-1
+                namespace: nginx-1
+                releaseName: release-<+INFRA_KEY>
+            allowSimultaneousDeployments: true
+          execution:
+            steps:
+              - step:
+                  name: Helm Deployment
+                  identifier: helmDeployment
+                  type: HelmDeploy
+                  timeout: 2m
+                  spec:
+                    skipDryRun: false
+                    ignoreReleaseHistFailStatus: false
+                    delegateSelectors:
+                      - sample-6f1b89a0-fcfc-4d6f-87c4-d640c9ba919d-delegate
+                  failureStrategies:
+                    - onFailure:
+                        errors:
+                          - AllErrors
+                        action:
+                          type: StageRollback
+                  strategy:
+                    parallelism: 1
+            rollbackSteps:
+              - step:
+                  name: Helm Rollback
+                  identifier: helmRollback
+                  type: HelmRollback
+                  timeout: 10m
+                  spec: {}
+        tags: {}
+        failureStrategies:
+          - onFailure:
+              errors:
+                - AllErrors
+              action:
+                type: StageRollback
+  notificationRules:
+    - name: all events
+      identifier: all_events
+      pipelineEvents:
+        - type: StageFailed
+          forStages:
+            - deploy_using_helm
+      notificationMethod:
+        type: Email
+        spec:
+          userGroups: []
+          recipients:
+            - mayank.agarwal19911@gmail.com
+      enabled: true
+  timeout: 2m
+  allowStageExecutions: false
+  delegateSelectors:
+    - sample-6f1b89a0-fcfc-4d6f-87c4-d640c9ba919d-delegate
