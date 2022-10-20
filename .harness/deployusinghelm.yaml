@@ -18,17 +18,16 @@ pipeline:
                 variables: []
                 manifests:
                   - manifest:
-                      identifier: k8s deployment
-                      type: K8sManifest
+                      identifier: nginx
+                      type: HelmChart
                       spec:
                         store:
-                          type: Github
+                          type: Http
                           spec:
-                            connectorRef: cdpeharness
-                            gitFetchType: Branch
-                            paths:
-                              - /deploy.yaml
-                            branch: dev
+                            connectorRef: helmconnector
+                        chartName: helm
+                        chartVersion: 0.1.0
+                        helmVersion: V3
                         skipResourceVersioning: false
               type: Kubernetes
           infrastructure:
