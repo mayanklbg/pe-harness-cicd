@@ -18,21 +18,17 @@ pipeline:
                 variables: []
                 manifests:
                   - manifest:
-                      identifier: pe-harness-cicd
+                      identifier: nginx
                       type: HelmChart
                       spec:
                         store:
-                          type: Github
+                          type: Http
                           spec:
-                            connectorRef: account.Github
-                            gitFetchType: Branch
-                            folderPath: /helm
-                            repoName: https://github.com/mayanklbg/pe-harness-cicd.git
-                            branch: dev-harness-helm
-                        valuesPaths:
-                          - /helm/values.yaml
+                            connectorRef: helm_connector
+                        chartName: nginx
+                        chartVersion: 8.8.1
+                        helmVersion: V3
                         skipResourceVersioning: false
-                        helmVersion: V2
               type: NativeHelm
           infrastructure:
             environmentRef: dev
