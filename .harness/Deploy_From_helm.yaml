@@ -6,8 +6,8 @@ pipeline:
   tags: {}
   stages:
     - stage:
-        name: deploy using helm
-        identifier: deploy_using_helm
+        name: helm deploy
+        identifier: helm_deploy
         description: ""
         type: Deployment
         spec:
@@ -18,19 +18,17 @@ pipeline:
                 variables: []
                 manifests:
                   - manifest:
-                      identifier: helm-deployment
+                      identifier: nginx
                       type: HelmChart
                       spec:
                         store:
-                          type: Github
+                          type: Http
                           spec:
-                            connectorRef: account.Github
-                            gitFetchType: Branch
-                            folderPath: /helm
-                            repoName: https://github.com/mayanklbg/pe-harness-cicd.git
-                            branch: dev
-                        skipResourceVersioning: false
+                            connectorRef: helm_connector
+                        chartName: nginx
+                        chartVersion: 8.8.1
                         helmVersion: V3
+                        skipResourceVersioning: false
               type: NativeHelm
           infrastructure:
             environmentRef: dev
@@ -39,7 +37,7 @@ pipeline:
               spec:
                 connectorRef: peplaypen
                 cluster: europe-west1-b/cluster-1
-                namespace: nginx-helm
+                namespace: nginx-1
                 releaseName: release-<+INFRA_KEY>
             allowSimultaneousDeployments: true
           execution:
@@ -48,13 +46,20 @@ pipeline:
                   name: Helm Deployment
                   identifier: helmDeployment
                   type: HelmDeploy
-                  timeout: 10m
+                  timeout: 2m
                   spec:
                     skipDryRun: false
                     ignoreReleaseHistFailStatus: false
                     delegateSelectors:
                       - sample-6f1b89a0-fcfc-4d6f-87c4-d640c9ba919d-delegate
-                  failureStrategies: []
+                  failureStrategies:
+                    - onFailure:
+                        errors:
+                          - AllErrors
+                        action:
+                          type: StageRollback
+                  strategy:
+                    parallelism: 1
             rollbackSteps:
               - step:
                   name: Helm Rollback
@@ -63,7 +68,27 @@ pipeline:
                   timeout: 10m
                   spec: {}
         tags: {}
-        failureStrategies: []
-        delegateSelectors:
-          - sample-6f1b89a0-fcfc-4d6f-87c4-d640c9ba919d-delegate
-        variables: []
+        failureStrategies:
+          - onFailure:
+              errors:
+                - AllErrors
+              action:
+                type: StageRollback
+  notificationRules:
+    - name: all events
+      identifier: all_events
+      pipelineEvents:
+        - type: StageFailed
+          forStages:
+            - deploy_using_helm
+      notificationMethod:
+        type: Email
+        spec:
+          userGroups: []
+          recipients:
+            - mayank.agarwal19911@gmail.com
+      enabled: true
+  timeout: 2m
+  allowStageExecutions: false
+  delegateSelectors:
+    - sample-6f1b89a0-fcfc-4d6f-87c4-d640c9ba919d-delegate

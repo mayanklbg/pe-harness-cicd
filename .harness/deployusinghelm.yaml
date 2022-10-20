@@ -1,0 +1,68 @@
+pipeline:
+  name: deploy-using-helm
+  identifier: deployusinghelm
+  projectIdentifier: cdhelm
+  orgIdentifier: default
+  tags: {}
+  stages:
+    - stage:
+        name: deployapp
+        identifier: deployapp
+        description: ""
+        type: Deployment
+        spec:
+          serviceConfig:
+            serviceRef: deployhelm
+            serviceDefinition:
+              spec:
+                variables: []
+                manifests:
+                  - manifest:
+                      identifier: k8s deployment
+                      type: K8sManifest
+                      spec:
+                        store:
+                          type: Github
+                          spec:
+                            connectorRef: cdpeharness
+                            gitFetchType: Branch
+                            paths:
+                              - /deploy.yaml
+                            branch: dev
+                        skipResourceVersioning: false
+              type: Kubernetes
+          infrastructure:
+            environmentRef: dev
+            infrastructureDefinition:
+              type: KubernetesGcp
+              spec:
+                connectorRef: gcpconnector
+                cluster: europe-west1-b/harness-delegate
+                namespace: nginx-helm
+                releaseName: release-<+INFRA_KEY>
+            allowSimultaneousDeployments: false
+          execution:
+            steps:
+              - step:
+                  name: Rollout Deployment
+                  identifier: rolloutDeployment
+                  type: K8sRollingDeploy
+                  timeout: 10m
+                  spec:
+                    skipDryRun: false
+                    pruningEnabled: false
+            rollbackSteps:
+              - step:
+                  name: Rollback Rollout Deployment
+                  identifier: rollbackRolloutDeployment
+                  type: K8sRollingRollback
+                  timeout: 10m
+                  spec:
+                    pruningEnabled: false
+        tags: {}
+        failureStrategies:
+          - onFailure:
+              errors:
+                - AllErrors
+              action:
+                type: StageRollback
